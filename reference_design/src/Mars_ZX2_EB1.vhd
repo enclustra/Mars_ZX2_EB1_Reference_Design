@@ -1,5 +1,5 @@
 ---------------------------------------------------------------------------------------------------
--- Copyright (c) 2021 by Enclustra GmbH, Switzerland.
+-- Copyright (c) 2022 by Enclustra GmbH, Switzerland.
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy of
 -- this hardware, software, firmware, and associated documentation files (the
@@ -55,7 +55,7 @@ entity Mars_ZX2_EB1 is
     DDR_dqs_n                      : inout  std_logic_vector(3 downto 0);
     DDR_dqs_p                      : inout  std_logic_vector(3 downto 0);
     
-    -- Anios_0
+    -- Anios IO Connector 0
     IOA_D0_P                       : inout   std_logic;
     IOA_D1_N                       : inout   std_logic;
     IOA_D2_P                       : inout   std_logic;
@@ -83,7 +83,7 @@ entity Mars_ZX2_EB1 is
     IOA_CLK_N                      : inout   std_logic;
     IOA_CLK_P                      : inout   std_logic;
     
-    -- CAM_0
+    -- Mini Camera Link Interface 0
     CAM0_X0_N                      : inout   std_logic;
     CAM0_X0_P                      : inout   std_logic;
     CAM0_X1_N                      : inout   std_logic;
@@ -103,7 +103,7 @@ entity Mars_ZX2_EB1 is
     CAM0_SERTFG_N                  : inout   std_logic;
     CAM0_SERTFG_P                  : inout   std_logic;
     
-    -- CAM_1
+    -- Mini Camera Link Interface 1
     CAM1_XY0_N                     : inout   std_logic;
     CAM1_XY0_P                     : inout   std_logic;
     CAM1_XY1_N                     : inout   std_logic;
@@ -127,30 +127,30 @@ entity Mars_ZX2_EB1 is
     CAM1_SERTFG_Z0_N               : inout   std_logic;
     CAM1_SERTFG_Z0_P               : inout   std_logic;
     
-    -- CLK33
+    -- 33 MHz user clock
     CLK33                          : in      std_logic; -- Only available on Z7020 modules
     
-    -- ETH_LED
+    -- ETH LED
     ETH_LED2_N                     : inout   std_logic; -- Only available on Z7020 modules
     
     -- HDMI
     HDMI_CEC                       : inout   std_logic;
-    HDMI_HPD                       : inout   std_logic;
-    HDMI_D0_N                      : inout   std_logic;
-    HDMI_D0_P                      : inout   std_logic;
-    HDMI_D1_N                      : inout   std_logic;
-    HDMI_D1_P                      : inout   std_logic;
-    HDMI_D2_N                      : inout   std_logic;
-    HDMI_D2_P                      : inout   std_logic;
-    HDMI_CLK_N                     : inout   std_logic;
-    HDMI_CLK_P                     : inout   std_logic;
+    HDMI_HPD                       : in      std_logic;
+    HDMI_D0_N                      : out     std_logic;
+    HDMI_D0_P                      : out     std_logic;
+    HDMI_D1_N                      : out     std_logic;
+    HDMI_D1_P                      : out     std_logic;
+    HDMI_D2_N                      : out     std_logic;
+    HDMI_D2_P                      : out     std_logic;
+    HDMI_CLK_N                     : out     std_logic;
+    HDMI_CLK_P                     : out     std_logic;
     
-    -- I2C_PL
+    -- I2C PL
     I2C_INT_N                      : in      std_logic; -- Only available on Z7020 modules
-    I2C_SCL_LS                     : inout   std_logic; -- Only available on Z7020 modules
-    I2C_SDA_LS                     : inout   std_logic; -- Only available on Z7020 modules
+    I2C_SCL                        : inout   std_logic; -- Only available on Z7020 modules
+    I2C_SDA                        : inout   std_logic; -- Only available on Z7020 modules
     
-    -- IO_B
+    -- IO Connector B
     IOB_D0_P                       : inout   std_logic;
     IOB_D1_N                       : inout   std_logic;
     IOB_D2_P                       : inout   std_logic;
@@ -160,17 +160,17 @@ entity Mars_ZX2_EB1 is
     IOB_D6_P                       : inout   std_logic;
     IOB_D7_N                       : inout   std_logic;
     
-    -- IO_C
-    IOC_D0_P                       : inout   std_logic;
-    IOC_D1_N                       : inout   std_logic;
-    IOC_D2_P                       : inout   std_logic;
-    IOC_D3_N                       : inout   std_logic;
-    IOC_D4_P                       : inout   std_logic;
-    IOC_D5_N                       : inout   std_logic;
-    IOC_D6_P                       : inout   std_logic;
-    IOC_D7_N                       : inout   std_logic;
+    -- IO Connector C
+    IOC_D0_SC0_BTN0_N              : inout   std_logic;
+    IOC_D1_SC1_BTN1_N              : inout   std_logic;
+    IOC_D2_SC2                     : inout   std_logic;
+    IOC_D3_SC3                     : inout   std_logic;
+    IOC_D4_SC4                     : inout   std_logic;
+    IOC_D5_SC5                     : inout   std_logic;
+    IOC_D6_SC6                     : inout   std_logic;
+    IOC_D7_SC7                     : inout   std_logic;
     
-    -- IO_D
+    -- IO Connector D
     IOD_D0_P                       : inout   std_logic;
     IOD_D1_N                       : inout   std_logic;
     IOD_D2_P                       : inout   std_logic;
@@ -218,6 +218,14 @@ architecture rtl of Mars_ZX2_EB1 is
     );
     
   end component Mars_ZX2;
+  
+  component OBUFDS is
+    port (
+      I : in STD_LOGIC;
+      O : out STD_LOGIC;
+      OB : out STD_LOGIC
+    );
+  end component OBUFDS;
 
   ---------------------------------------------------------------------------------------------------
   -- signal declarations
@@ -260,6 +268,34 @@ begin
       LED_N                => LED_N
     );
   
+  hdmi_clock_buf: component OBUFDS
+    port map (
+      I => '0',
+      O => HDMI_CLK_P,
+      OB => HDMI_CLK_N
+    );
+  
+  hdmi_d0_buf: component OBUFDS
+    port map (
+      I => '0',
+      O => HDMI_D0_P,
+      OB => HDMI_D0_N
+    );
+  
+  hdmi_d1_buf: component OBUFDS
+    port map (
+      I => '0',
+      O => HDMI_D1_P,
+      OB => HDMI_D1_N
+    );
+  
+  hdmi_d2_buf: component OBUFDS
+    port map (
+      I => '0',
+      O => HDMI_D2_P,
+      OB => HDMI_D2_N
+    );
+  
   process (Clk50)
   begin
     if rising_edge (Clk50) then
@@ -274,5 +310,5 @@ begin
   LED1_N_PL <= '0' when LED_N(0) = '0' else 'Z';
   LED2_N_PL <= '0' when LED_N(1) = '0' else 'Z';
   LED3_N_PL <= '0' when LED_N(2) = '0' else 'Z';
-
+  
 end rtl;
